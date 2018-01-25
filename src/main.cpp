@@ -41,6 +41,20 @@ double polyeval(Eigen::VectorXd coeffs, double x) {
   return result;
 }
 
+vector<double> convertCoordinate(double x_vehicle_map,
+                                 double y_vehicle_map,
+                                 double theta_vehicle,
+                                 double x_map,
+                                 double y_map
+                                 )
+{
+  double x = x_map - x_vehicle_map;
+  double y = y_map - y_vehicle_map;
+  double x_vehicle = x * cos(theta_vehicle) + y * sin(theta_vehicle);
+  double y_vehicle = x * -1. * sin(theta_vehicle) + y * cos(theta_vehicle);
+  return {x_vehicle, y_vehicle};
+}
+
 // Fit a polynomial.
 // Adapted from
 // https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
@@ -87,10 +101,19 @@ int main() {
           // j[1] is the data JSON object
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
+
           double px = j[1]["x"];
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
+
+          vector<double> ptsx_v;
+          vector<double> ptsy_v;
+          for (int i=0; i<ptsx.size(); ++i) {
+            auto coordinate = convertCoordinate(px, py, psi, ptsx[i], ptsy[i]);
+            ptsx_v.push_back(coordinate[0]);
+            ptsy_v.push_back(coordinate[1]);
+          }
           
           Eigen::VectorXd trjx = Eigen::Map<Eigen::VectorXd>(&ptsx[0], ptsx.size());
           Eigen::VectorXd trjy = Eigen::Map<Eigen::VectorXd>(&ptsy[0], ptsy.size());
@@ -105,6 +128,7 @@ int main() {
           */
           Eigen::VectorXd state(6);
           state << px, py, psi, v, cte, epsi;
+          // TODO: use the result.
           mpc.Solve(state, coeffs);
 
           double steer_value = 0;
@@ -128,8 +152,8 @@ int main() {
           msgJson["mpc_y"] = mpc_y_vals;
 
           //Display the waypoints/reference line
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          vector<double> next_x_vals = ptsx_v;
+          vector<double> next_y_vals = ptsy_v;
 
           // TODO:
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
