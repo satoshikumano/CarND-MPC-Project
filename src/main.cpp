@@ -91,15 +91,26 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-
+          
+          Eigen::VectorXd ptx(2);
+          Eigen::VectorXd pty(2);
+          ptx << ptsx[0], ptsx[1];
+          pty << ptsy[0], ptsy[1];
+          auto coeffs = polyfit(ptx, pty, 1);
+          double cte = polyeval(coeffs, px) - py;
+          double epsi = psi - atan(coeffs[1]);
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          Eigen::VectorXd state(6);
+          state << px, py, psi, v, cte, epsi;
+          mpc.Solve(state, coeffs);
+
+          double steer_value = 0;
+          double throttle_value = 0.01;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -111,6 +122,7 @@ int main() {
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
 
+          // TODO:
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
 
@@ -121,6 +133,7 @@ int main() {
           vector<double> next_x_vals;
           vector<double> next_y_vals;
 
+          // TODO:
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
 
