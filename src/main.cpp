@@ -92,11 +92,9 @@ int main() {
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
           
-          Eigen::VectorXd ptx(2);
-          Eigen::VectorXd pty(2);
-          ptx << ptsx[0], ptsx[1];
-          pty << ptsy[0], ptsy[1];
-          auto coeffs = polyfit(ptx, pty, 1);
+          Eigen::VectorXd trjx = Eigen::Map<Eigen::VectorXd>(&ptsx[0], ptsx.size());
+          Eigen::VectorXd trjy = Eigen::Map<Eigen::VectorXd>(&ptsy[0], ptsy.size());
+          auto coeffs = polyfit(trjx, trjy, 3);
           double cte = polyeval(coeffs, px) - py;
           double epsi = psi - atan(coeffs[1]);
           /*
