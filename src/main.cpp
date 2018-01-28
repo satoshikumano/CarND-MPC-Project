@@ -84,8 +84,9 @@ int main() {
 
   // MPC is initialized here!
   MPC mpc;
+  MPCResult result;
 
-  h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  h.onMessage([&mpc, &result](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -129,10 +130,16 @@ int main() {
           Eigen::VectorXd state(6);
           state << px, py, psi, v, cte, epsi;
           // TODO: use the result.
-          mpc.Solve(state, coeffs);
-
-          double steer_value = 0;
-          double throttle_value = 0.01;
+          
+          mpc.Solve(state, coeffs, &result);
+          std::cout<< "result.x.size: " << result.x.size() << endl;
+          std::cout<< "result.x[0]: " << result.x[0] << endl;
+          std::cout<< "result.y.size: " << result.y.size() << endl;
+          std::cout<< "result.y[0]: " << result.y[0] << endl;
+          double steer_value = result.delta * -1 / deg2rad(25);
+          double throttle_value = result.a;
+          std::cout<< "steer_value: " << steer_value << endl;
+          std::cout<< "throttle_value: " << throttle_value << endl;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -143,10 +150,15 @@ int main() {
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
           vector<double> mpc_y_vals;
-
           // TODO:
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Green line
+          
+          for (int i=0; i<result.x.size(); ++i) {
+            auto coordinate = convertCoordinate(px, py, psi, result.x[i], result.y[i]);
+            mpc_x_vals.push_back(coordinate[0]);
+            mpc_y_vals.push_back(coordinate[1]);
+          }
 
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
