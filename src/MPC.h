@@ -6,6 +6,10 @@
 
 using namespace std;
 
+// TODO: Set the timestep length and duration
+const size_t N = 10;
+const double dt = 0.1;
+
 class MPCResult {
   public:
     MPCResult();

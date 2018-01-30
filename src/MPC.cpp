@@ -5,10 +5,6 @@
 
 using CppAD::AD;
 
-// TODO: Set the timestep length and duration
-size_t N = 25;
-double dt = 0.05;
-
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the
@@ -22,6 +18,8 @@ double dt = 0.05;
 const double Lf = 2.67;
 
 const double ref_v = 40;
+extern const size_t N;
+extern const double dt;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -103,16 +101,15 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
-
+      const CppAD::AD<double> f0 = coeffs(0) + coeffs(1)*x0 + coeffs(2)*(x0*x0) + coeffs(3)*(x0*x0*x0);
+      const CppAD::AD<double> psides0 = CppAD::atan(coeffs(1) + 2*coeffs(2)*x0 + 3*coeffs(3)*x0*x0);
       // Setup the rest of the model constraints
       fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
       fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-      fg[1 + psi_start + t] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
+      fg[1 + psi_start + t] = psi1 - (psi0 + v0 * (delta0 / Lf) * dt);
       fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
-      fg[1 + cte_start + t] = cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
-      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
+      fg[1 + cte_start + t] = cte1 - ((y0 - f0) + (v0 * CppAD::sin(epsi0) * dt));
+      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) + v0 * (delta0 / Lf) * dt);
     }
   }
 };
@@ -241,6 +238,7 @@ void MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs, MPCResult* result
   // Check some of the solution values
   ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
+  std::cout << "OK: " << ok << std::endl;
   // Cost
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;

@@ -17,6 +17,8 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
+extern const size_t N;
+
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
 // else the empty string "" will be returned.
@@ -116,11 +118,12 @@ int main() {
             ptsy_v.push_back(coordinate[1]);
           }
           
-          Eigen::VectorXd trjx = Eigen::Map<Eigen::VectorXd>(&ptsx[0], ptsx.size());
-          Eigen::VectorXd trjy = Eigen::Map<Eigen::VectorXd>(&ptsy[0], ptsy.size());
+          Eigen::VectorXd trjx = Eigen::Map<Eigen::VectorXd>(&ptsx[0], N);
+          Eigen::VectorXd trjy = Eigen::Map<Eigen::VectorXd>(&ptsy[0], N);
           auto coeffs = polyfit(trjx, trjy, 3);
           double cte = polyeval(coeffs, px) - py;
-          double epsi = psi - atan(coeffs[1]);
+          double x0 = ptsx[0];
+          double epsi = psi - atan(coeffs[1] + 2 * coeffs[2]* x0 + 3 * coeffs[3] * x0 * x0);
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
@@ -129,7 +132,6 @@ int main() {
           */
           Eigen::VectorXd state(6);
           state << px, py, psi, v, cte, epsi;
-          // TODO: use the result.
           
           mpc.Solve(state, coeffs, &result);
           std::cout<< "result.x.size: " << result.x.size() << endl;
@@ -144,8 +146,10 @@ int main() {
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
           // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
+          // msgJson["steering_angle"] = steer_value;
+          // msgJson["throttle"] = throttle_value;
+          msgJson["steering_angle"] = 0;
+          msgJson["throttle"] = 0.5;
 
           //Display the MPC predicted trajectory 
           vector<double> mpc_x_vals;
@@ -186,7 +190,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          this_thread::sleep_for(chrono::milliseconds(100));
+          // this_thread::sleep_for(chrono::milliseconds(100));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {
