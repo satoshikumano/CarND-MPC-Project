@@ -10,6 +10,9 @@ using namespace std;
 const size_t N = 10;
 const double dt = 0.2;
 const double mile_in_meter = 1609.344;
+const double Lf = 2.67;
+// Convert unit. (mile/h -> meter/s)
+const double ref_v = 40 * mile_in_meter / 3600.;
 
 class MPCResult {
   public:

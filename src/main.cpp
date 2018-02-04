@@ -111,13 +111,22 @@ int main() {
           double v = j[1]["speed"];
           // Convert unit. (mile/h -> meter/s)
           v = v * mile_in_meter / 3600.;
-          // double steering = j[1]["steering_angle"];
-          // double throttle = j[1]["throttle"];
+          double steering = j[1]["steering_angle"];
+          steering = steering * -1.;
+          double throttle = j[1]["throttle"];
+
+          // Deal with 100ms latency.
+          double latency = 0.1;
+          double pred_px = px + cos(psi) * v * latency;
+          double pred_py = py + sin(psi) * v * latency;
+          extern const double Lf;
+          double pred_psi = psi + v * (steering/Lf) * latency;
+          double pred_v = v + throttle * latency;
 
           vector<double> ptsx_v;
           vector<double> ptsy_v;
           for (int i=0; i<ptsx.size(); ++i) {
-            auto coordinate = convertCoordinate(px, py, psi, ptsx[i], ptsy[i]);
+            auto coordinate = convertCoordinate(pred_px, pred_py, pred_psi, ptsx[i], ptsy[i]);
             ptsx_v.push_back(coordinate[0]);
             ptsy_v.push_back(coordinate[1]);
           }
@@ -134,7 +143,7 @@ int main() {
           *
           */
           Eigen::VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
+          state << 0, 0, 0, pred_v, cte, epsi;
           
           mpc.Solve(state, coeffs, &result);
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
@@ -180,7 +189,7 @@ int main() {
           //
           // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
           // SUBMITTING.
-          // this_thread::sleep_for(chrono::milliseconds(100));
+          this_thread::sleep_for(chrono::milliseconds(100));
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }
       } else {

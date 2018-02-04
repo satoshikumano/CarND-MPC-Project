@@ -18,10 +18,9 @@ extern const double mile_in_meter;
 // presented in the classroom matched the previous radius.
 //
 // This is the length from front to CoG that has a similar radius.
-const double Lf = 2.67;
+extern const double Lf;
 
-// Convert unit. (mile/h -> meter/s)
-const double ref_v = 40 * mile_in_meter / 3600.;
+extern const double ref_v;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
