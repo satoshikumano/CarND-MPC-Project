@@ -8,7 +8,8 @@ using namespace std;
 
 // TODO: Set the timestep length and duration
 const size_t N = 10;
-const double dt = 0.1;
+const double dt = 0.2;
+const double mile_in_meter = 1609.344;
 
 class MPCResult {
   public:

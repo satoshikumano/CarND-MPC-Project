@@ -5,6 +5,9 @@
 
 using CppAD::AD;
 
+extern const size_t N;
+extern const double dt;
+extern const double mile_in_meter;
 // This value assumes the model presented in the classroom is used.
 //
 // It was obtained by measuring the radius formed by running the vehicle in the
@@ -17,9 +20,8 @@ using CppAD::AD;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
-const double ref_v = 40;
-extern const size_t N;
-extern const double dt;
+// Convert unit. (mile/h -> meter/s)
+const double ref_v = 40 * mile_in_meter / 3600.;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
