@@ -126,7 +126,6 @@ MPCResult::~MPCResult() {}
 
 void MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs, MPCResult* result) {
   bool ok = true;
-  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
   double x = state[0];
   double y = state[1];
