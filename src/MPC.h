@@ -7,8 +7,8 @@
 using namespace std;
 
 // TODO: Set the timestep length and duration
-const size_t N = 10;
-const double dt = 0.2;
+const size_t N = 5;
+const double dt = 0.5;
 const double mile_in_meter = 1609.344;
 const double Lf = 2.67;
 // Convert unit. (mile/h -> meter/s)
@@ -25,14 +25,18 @@ class MPCResult {
 };
 
 class MPC {
- public:
-  MPC();
+  public:
+    MPC();
 
-  virtual ~MPC();
+    virtual ~MPC();
 
-  // Solve the model given an initial state and polynomial coefficients.
-  // Return the first actuatotions.
-  void Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs, MPCResult* result);
+    // Solve the model given an initial state and polynomial coefficients.
+    // Return the first actuatotions.
+    void Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs, MPCResult *result);
+
+  private:
+    long long duration_total = 0;
+    size_t count = 0;
 };
 
 

@@ -1,6 +1,7 @@
 #include "MPC.h"
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
+#include <chrono>
 #include "Eigen-3.3/Eigen/Core"
 
 using CppAD::AD;
@@ -125,6 +126,8 @@ MPCResult::MPCResult() {}
 MPCResult::~MPCResult() {}
 
 void MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs, MPCResult* result) {
+  std::chrono::high_resolution_clock::time_point t_start =
+      std::chrono::high_resolution_clock::now();
   bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
   double x = state[0];
@@ -260,4 +263,15 @@ void MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs, MPCResult* result
   }
   result->delta = solution.x[delta_start];
   result->a = solution.x[a_start];
+  std::chrono::high_resolution_clock::time_point t_end =
+      std::chrono::high_resolution_clock::now();
+  auto duration_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>
+      (t_end - t_start).count();
+  
+  std::cout << "Solve takes: " << duration_ms << "ms." << std::endl;
+  ++count;
+  duration_total = (duration_total + duration_ms);
+  double duration_ave = duration_total / (double) count;
+  std::cout << "Solve ave: " << duration_ave << "ms." << std::endl;
 }
